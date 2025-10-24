@@ -11,13 +11,21 @@ import chatRoutes from "./routes/chat.route.js";
 import { connectDB } from "./lib/db.js";
 
 const app = express();
-const PORT = process.env.PORT;
+// We deleted the first "const PORT" from here.
 
 const __dirname = path.resolve();
 
+// This is the new, correct CORS setup
+const frontendURL = process.env.FRONTEND_URL;
+if (!frontendURL) {
+  console.error("ERROR: FRONTEND_URL environment variable is not set.");
+  // In a real app, you might want to exit if this isn't set
+  // process.exit(1); 
+}
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: frontendURL || "http://localhost:5173", // Fallback for safety
     credentials: true, // allow frontend to send cookies
   })
 );
@@ -29,17 +37,13 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+// We removed the entire 'if (process.env.NODE_ENV === "production")' block.
+// It is not needed because your frontend is a separate "Static Site" on Render.
 
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
-  });
-}
-
-// This is the GOOD code
+// This is the GOOD code, now only declared ONCE.
 const PORT = process.env.PORT || 5001; // Uses Render's port, or 5001 for local testing
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`); // Use the variable
+  connectDB(); // Moved connectDB here so it runs when the server starts
 });
