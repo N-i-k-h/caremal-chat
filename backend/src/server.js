@@ -37,7 +37,9 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
+// This is the GOOD code
+const PORT = process.env.PORT || 5001; // Uses Render's port, or 5001 for local testing
+
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  connectDB();
+  console.log(`Server is running on port ${PORT}`); // Use the variable
 });
