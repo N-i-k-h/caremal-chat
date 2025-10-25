@@ -11,39 +11,41 @@ import chatRoutes from "./routes/chat.route.js";
 import { connectDB } from "./lib/db.js";
 
 const app = express();
-// We deleted the first "const PORT" from here.
+const PORT = process.env.PORT || 5000;
 
 const __dirname = path.resolve();
 
-// This is the new, correct CORS setup
-const frontendURL = process.env.FRONTEND_URL;
-if (!frontendURL) {
-  console.error("ERROR: FRONTEND_URL environment variable is not set.");
-  // In a real app, you might want to exit if this isn't set
-  // process.exit(1); 
-}
-
+// ✅ Updated CORS for Render
 app.use(
   cors({
-    origin: frontendURL || "http://localhost:5173", // Fallback for safety
-    credentials: true, // allow frontend to send cookies
+    origin: [
+      "https://caremal-chat-16.onrender.com", // your frontend Render site
+      "http://localhost:5173", // local dev testing
+    ],
+    credentials: true, // allow cookies / JWT
   })
 );
 
+// ✅ Middleware
 app.use(express.json());
 app.use(cookieParser());
 
+// ✅ Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 
-// We removed the entire 'if (process.env.NODE_ENV === "production")' block.
-// It is not needed because your frontend is a separate "Static Site" on Render.
+// ✅ Optional: serve frontend build if you ever merge both
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+  });
+}
 
-// This is the GOOD code, now only declared ONCE.
-const PORT = process.env.PORT || 5001; // Uses Render's port, or 5001 for local testing
+// ✅ Connect DB and start server
+connectDB();
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`); // Use the variable
-  connectDB(); // Moved connectDB here so it runs when the server starts
+  console.log(`✅ Server running on port ${PORT}`);
 });
