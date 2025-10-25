@@ -13,18 +13,18 @@ import { connectDB } from "./lib/db.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// For ESM (__dirname replacement)
+// ✅ For ESM (__dirname replacement)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ CORS configuration
+// ✅ Updated CORS for Render + Local Dev
 app.use(
   cors({
     origin: [
-      "https://caremal-chat-16.onrender.com", // your Render frontend URL
-      "http://localhost:5173",               // local dev testing
+      "https://caremal-chat-17.onrender.com", // your Render app domain
+      "http://localhost:5173",                // for local dev
     ],
-    credentials: true,
+    credentials: true, // allow cookies / JWT
   })
 );
 
@@ -37,15 +37,15 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 
-// ✅ Serve frontend build in production
-const clientPath = path.join(__dirname, "client/dist");
+// ✅ Serve Frontend Build (for Render)
+const clientPath = path.join(__dirname, "../client/dist"); 
 app.use(express.static(clientPath));
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(clientPath, "index.html"));
 });
 
-// ✅ Connect to DB and start server
+// ✅ Connect to MongoDB and Start Server
 connectDB();
 
 app.listen(PORT, () => {
